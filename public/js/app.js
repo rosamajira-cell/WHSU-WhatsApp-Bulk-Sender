@@ -288,8 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedIndex = parseInt(previewContactSelect.value || 0, 10);
     const sampleContact = loadedContacts[selectedIndex] || {
       name: 'Rosa',
-      phone: '34645029285',
-      variables: { 'Nombre del Padre': 'Rosa', 'Nombre del Alumno': 'Lucas', 'Teléfono': '34645029285' }
+      phone: '34600112233',
+      variables: { 'Nombre del Padre': 'Rosa', 'Nombre del Alumno': 'Lucas', 'Teléfono': '34600112233' }
     };
 
     let rendered = template;

@@ -46,7 +46,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Aumentar el límite de payload JSON a 50MB para soportar listas masivas grandes sin error 413
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -110,8 +109,8 @@ campaignManager.on('interval-updated', (data) => {
 app.get('/api/download-template', (req, res) => {
   try {
     const sampleData = [
-      { 'Nombre del Padre': 'Rosa', 'Teléfono': '34645029285', 'Nombre del Alumno': 'Lucas' },
-      { 'Nombre del Padre': 'Javier', 'Teléfono': '34605381933', 'Nombre del Alumno': 'Sofía' }
+      { 'Nombre del Padre': 'Rosa', 'Teléfono': '34600112233', 'Nombre del Alumno': 'Lucas' },
+      { 'Nombre del Padre': 'Javier', 'Teléfono': '34699887766', 'Nombre del Alumno': 'Sofía' }
     ];
 
     const ws = XLSX.utils.json_to_sheet(sampleData);

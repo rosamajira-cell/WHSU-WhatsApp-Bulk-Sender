@@ -76,8 +76,8 @@ El archivo Excel (`.xlsx`, `.xls` o `.csv`) debe contener al menos las columnas 
 
 | Nombre del Padre | Teléfono | Nombre del Alumno |
 | :--- | :--- | :--- |
-| Rosa | 34645029285 | Lucas |
-| Javier | 34605381933 | Sofía |
+| Rosa | 34600112233 | Lucas |
+| Javier | 34699887766 | Sofía |
 
 ---
 
