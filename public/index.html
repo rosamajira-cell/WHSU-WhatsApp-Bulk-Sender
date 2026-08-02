@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WHSU - WhatsApp Bulk Sender Pro (by Fede Padilla)</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- HEADER PRINCIPAL CON BRANDING CUSTOM -->
+  <header class="app-header">
+    <div class="brand-container">
+      <img src="icon.png" alt="WHSU Logo" class="brand-logo-img">
+      <div class="brand-text">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h1>WHSU Bulk Sender Pro</h1>
+          <span class="brand-by-badge"><i class="fa-solid fa-code"></i> by Fede Padilla</span>
+        </div>
+        <p>Automatización Inteligente de Comunicados Masivos por WhatsApp</p>
+      </div>
+    </div>
+
+    <div class="header-status-area">
+      <!-- Indicador de Estado de Conexión -->
+      <div class="status-badge" id="statusBadge">
+        <span class="status-dot disconnected" id="statusDot"></span>
+        <span id="statusText">Desconectado</span>
+      </div>
+
+      <!-- Botón de Gestión de Sesión -->
+      <button class="btn btn-secondary" id="btnManageSession">
+        <i class="fa-solid fa-qrcode"></i> Vincular / Estado
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-layout">
+    
+    <!-- COLUMNA IZQUIERDA: CONFIGURACIÓN Y CONTROLES -->
+    <div class="panel-column">
+      
+      <!-- CARD 1: CARGADOR DE EXCEL Y AGRUPACIÓN -->
+      <section class="card">
+        <h2 class="card-title">
+          <i class="fa-solid fa-file-excel"></i> Lista de Contactos (Excel)
+        </h2>
+
+        <div class="file-dropzone" id="excelDropzone">
+          <input type="file" id="excelInput" accept=".xlsx, .xls, .csv">
+          <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+          <div class="dropzone-text" id="dropzoneLabel">
+            <strong>Haz clic o arrastra un archivo Excel</strong>
+            <p>.xlsx, .xls o .csv con columnas de Nombre y Teléfono</p>
+          </div>
+        </div>
+
+        <a href="/api/download-template" download class="btn btn-secondary btn-xs" style="margin-top: 12px; width: 100%; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+          <i class="fa-solid fa-file-arrow-down" style="color: var(--primary-green);"></i> Descargar Plantilla Excel de Ejemplo (.xlsx)
+        </a>
+
+        <div class="form-group" style="margin-top: 14px;" id="sheetSelectGroup">
+          <label for="excelSheetSelect">Hoja del Excel:</label>
+          <select id="excelSheetSelect" class="select-control" disabled>
+            <option value="">Selecciona una hoja...</option>
+          </select>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <strong style="font-size: 13px; display: block;">Agrupar registros por Teléfono</strong>
+            <small style="color: var(--text-muted); font-size: 11px;">Combina mensajes de contactos que comparten número</small>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chkGroupByPhone">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div id="excelInfoBadge" style="margin-top: 10px; font-size: 12px; color: var(--accent-cyan); display: none;">
+          <i class="fa-solid fa-check-circle"></i> <span id="excelInfoText">0 contactos cargados</span>
+        </div>
+      </section>
+
+      <!-- CARD 2: EDITOR DE PLANTILLA DE MENSAJE -->
+      <section class="card">
+        <h2 class="card-title">
+          <i class="fa-solid fa-pen-to-square"></i> Plantilla del Mensaje
+        </h2>
+
+        <div style="margin-bottom: 8px;">
+          <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">
+            Haz clic en una variable para insertarla:
+          </label>
+          <div class="variables-container" id="variablesContainer">
+            <span class="tag-pill" data-tag="{Nombre del Padre}">{Nombre del Padre}</span>
+            <span class="tag-pill" data-tag="{Nombre del Alumno}">{Nombre del Alumno}</span>
+            <span class="tag-pill" data-tag="{Teléfono}">{Teléfono}</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <textarea id="templateTextarea" class="textarea-control" placeholder="Escribe tu comunicado aquí. Usa etiquetas como {Nombre del Padre} o {Nombre del Alumno}..."></textarea>
+        </div>
+
+        <!-- Vista previa en tiempo real -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="font-size: 12px; color: var(--text-muted);">Vista previa con contacto:</label>
+            <select id="previewContactSelect" class="select-control" style="width: auto; padding: 2px 8px; font-size: 11px;">
+              <option value="0">Contacto #1</option>
+            </select>
+          </div>
+          <div class="preview-box" id="templatePreviewBox">Escribe una plantilla para ver el resultado...</div>
+        </div>
+      </section>
+
+      <!-- CARD 3: TIEMPOS E INTERVALO DINÁMICO & ADJUNTOS -->
+      <section class="card">
+        <h2 class="card-title">
+          <i class="fa-solid fa-sliders"></i> Tiempos y Archivos Adjuntos
+        </h2>
+
+        <div class="form-group">
+          <label for="intervalInput">
+            <i class="fa-solid fa-stopwatch" style="color: var(--accent-cyan);"></i> Tiempo de espera entre mensajes (segundos):
+          </label>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="number" id="intervalInput" class="input-control" value="5" min="1" max="300">
+            <small style="color: var(--primary-green); font-size: 11px; white-space: nowrap;">
+              <i class="fa-solid fa-bolt"></i> Modificable en vivo
+            </small>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <strong style="font-size: 13px; display: block;">Adjunto Global Único</strong>
+            <small style="color: var(--text-muted); font-size: 11px;">Enviar el mismo archivo (PDF/Imagen/Doc) a todos</small>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chkGlobalAttachment">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div id="globalAttachmentArea" style="display: none; margin-top: 10px;">
+          <input type="file" id="globalAttachmentInput" class="input-control">
+          <small id="globalAttachmentLabel" style="color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block;"></small>
+        </div>
+
+        <div class="toggle-row" style="margin-top: 10px;">
+          <div>
+            <strong style="font-size: 13px; display: block;">Adjuntos Individuales por Carpeta</strong>
+            <small style="color: var(--text-muted); font-size: 11px;">Busca un archivo cuyo nombre coincida con el número o nombre del cliente</small>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chkFolderAttachments">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div id="folderAttachmentArea" style="display: none; margin-top: 10px;">
+          <input type="text" id="folderPathInput" class="input-control" placeholder="Ruta de la carpeta (ej. /Usuarios/archivos_envio)">
+        </div>
+      </section>
+
+      <!-- CARD 4: CONTROLES DE EJECUCIÓN DE CAMPAÑA -->
+      <section class="card">
+        <h2 class="card-title">
+          <i class="fa-solid fa-play"></i> Control de Ejecución
+        </h2>
+
+        <div class="execution-controls">
+          <button class="btn btn-primary" id="btnStartCampaign">
+            <i class="fa-solid fa-paper-plane"></i> Iniciar
+          </button>
+          <button class="btn btn-warning" id="btnPauseCampaign" disabled>
+            <i class="fa-solid fa-pause"></i> Pausar
+          </button>
+          <button class="btn btn-info" id="btnResumeCampaign" disabled>
+            <i class="fa-solid fa-play"></i> Reanudar
+          </button>
+          <button class="btn btn-danger" id="btnCancelCampaign" disabled>
+            <i class="fa-solid fa-stop"></i> Cancelar
+          </button>
+        </div>
+
+        <div class="countdown-banner" id="countdownBanner">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Próximo Envío En</div>
+            <div class="countdown-clock" id="countdownClock">--s</div>
+          </div>
+          <div class="next-contact-info">
+            <span style="font-size: 11px; color: var(--text-muted);">Siguiente Contacto:</span>
+            <strong id="nextContactName">En espera...</strong>
+            <small id="nextContactPhone" style="color: var(--accent-cyan); display: block;"></small>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- COLUMNA DERECHA: MÉTRICAS Y BITÁCORA DE ENVÍOS EN TIEMPO REAL -->
+    <div class="panel-column">
+      
+      <!-- METRICAS DE CAMPAÑA -->
+      <section class="card">
+        <h2 class="card-title">
+          <i class="fa-solid fa-chart-pie"></i> Estado y Progreso de la Campaña
+        </h2>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-value" id="metricTotal" style="color: var(--text-main);">0</div>
+            <div class="metric-label">Total Listados</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="metricSent" style="color: var(--primary-green);">0</div>
+            <div class="metric-label">Enviados</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="metricFailed" style="color: var(--danger-red);">0</div>
+            <div class="metric-label">Fallidos</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value" id="metricPending" style="color: var(--warning-amber);">0</div>
+            <div class="metric-label">Pendientes</div>
+          </div>
+        </div>
+
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+      </section>
+
+      <!-- BITÁCORA Y GESTIÓN DE ERRORES -->
+      <section class="card" style="flex: 1; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h2 class="card-title" style="margin-bottom: 0;">
+            <i class="fa-solid fa-list-check"></i> Bitácora de Envíos en Tiempo Real
+          </h2>
+          
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-xs" id="btnExportLog">
+              <i class="fa-solid fa-file-export" style="color: var(--accent-cyan);"></i> Exportar Resultados
+            </button>
+
+            <button class="btn btn-warning btn-xs" id="btnRetryFailed">
+              <i class="fa-solid fa-rotate-right"></i> Reintentar Fallidos
+            </button>
+          </div>
+        </div>
+
+        <!-- Herramientas de búsqueda y filtro -->
+        <div class="table-header-tools">
+          <div class="search-box">
+            <input type="text" id="logSearchInput" class="input-control" placeholder="🔍 Buscar por nombre o teléfono...">
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <select id="logStatusFilter" class="select-control" style="width: auto;">
+              <option value="all">Todos los estados</option>
+              <option value="sent">Enviados</option>
+              <option value="failed">Fallidos</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabla con Scroll Independiente -->
+        <div class="table-scroll-container">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th>Destinatario</th>
+                <th>Teléfono</th>
+                <th>Mensaje</th>
+                <th>Estado</th>
+                <th>Hora</th>
+                <th style="text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                  No hay envíos registrados en la sesión actual.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL DE CONEXIÓN Y CÓDIGO QR -->
+  <div class="modal-overlay" id="qrModal">
+    <div class="modal-card">
+      <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 10px;">Vincular WhatsApp Web</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        Abre WhatsApp en tu teléfono, ve a <strong>Dispositivos vinculados</strong> y escanea el código QR a continuación:
+      </p>
+
+      <div class="qr-image-container" id="qrContainer">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 40px; color: var(--accent-cyan);"></i>
+      </div>
+
+      <p id="qrModalStatus" style="font-size: 13px; font-weight: 600; color: var(--warning-amber); margin-bottom: 20px;">
+        Generando código QR...
+      </p>
+
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="btn btn-secondary" id="btnCloseQrModal">Cerrar</button>
+        <button class="btn btn-danger" id="btnDisconnectSession">Desconectar Sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
