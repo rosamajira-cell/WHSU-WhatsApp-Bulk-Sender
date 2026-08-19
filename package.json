@@ -1,6 +1,6 @@
 {
   "name": "whsu-whatsapp-sender",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Aplicación de escritorio para envíos masivos por WhatsApp a partir de listas Excel",
   "main": "main.js",
   "scripts": {
