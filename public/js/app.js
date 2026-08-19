@@ -22,6 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const excelInfoText = document.getElementById('excelInfoText');
   const dropzoneLabel = document.getElementById('dropzoneLabel');
 
+  // Selector de inicio / reanudación de campaña
+  const startRangeGroup = document.getElementById('startRangeGroup');
+  const startContactIndex = document.getElementById('startContactIndex');
+  const startContactSelect = document.getElementById('startContactSelect');
+  const startRangeCountBadge = document.getElementById('startRangeCountBadge');
+  const startContactPreviewName = document.getElementById('startContactPreviewName');
+
   const variablesContainer = document.getElementById('variablesContainer');
   const templateTextarea = document.getElementById('templateTextarea');
   const previewContactSelect = document.getElementById('previewContactSelect');
@@ -215,17 +222,78 @@ document.addEventListener('DOMContentLoaded', () => {
       excelInfoBadge.style.display = 'block';
       dropzoneLabel.innerHTML = `<strong>${file.name}</strong><p>Archivo cargado correctamente</p>`;
 
+      setupStartRangeControl();
       renderVariableTags(detectedColumns);
       updatePreviewContactOptions();
       updateTemplatePreview();
-
-      metricTotal.textContent = loadedContacts.length;
-      metricPending.textContent = loadedContacts.length;
 
     } catch (err) {
       console.error('Error subiendo Excel:', err);
       alert('Falló la conexión con el servidor al procesar el Excel.');
     }
+  }
+
+  function setupStartRangeControl() {
+    if (!startRangeGroup) return;
+
+    if (loadedContacts.length === 0) {
+      startRangeGroup.style.display = 'none';
+      return;
+    }
+
+    startRangeGroup.style.display = 'block';
+    startContactIndex.min = 1;
+    startContactIndex.max = loadedContacts.length;
+    startContactIndex.value = 1;
+
+    startContactSelect.innerHTML = '';
+    loadedContacts.forEach((contact, idx) => {
+      const opt = document.createElement('option');
+      opt.value = idx + 1;
+      opt.textContent = `#${idx + 1} - ${contact.name} (${contact.phone})`;
+      startContactSelect.appendChild(opt);
+    });
+
+    updateStartRangeUI();
+  }
+
+  function updateStartRangeUI() {
+    if (!startRangeGroup || loadedContacts.length === 0) return;
+
+    let startIndex = parseInt(startContactIndex.value, 10);
+    if (isNaN(startIndex) || startIndex < 1) startIndex = 1;
+    if (startIndex > loadedContacts.length) startIndex = loadedContacts.length;
+
+    startContactIndex.value = startIndex;
+    startContactSelect.value = startIndex;
+
+    const selectedContact = loadedContacts[startIndex - 1];
+    const totalRemaining = loadedContacts.length - startIndex + 1;
+
+    startRangeCountBadge.textContent = `${totalRemaining} de ${loadedContacts.length} contactos a enviar`;
+    startContactPreviewName.textContent = selectedContact ? `${selectedContact.name} (+${selectedContact.phone})` : '-';
+
+    metricTotal.textContent = totalRemaining;
+    metricPending.textContent = totalRemaining;
+    nextContactName.textContent = selectedContact ? selectedContact.name : 'En espera...';
+    nextContactPhone.textContent = selectedContact ? `+${selectedContact.phone}` : '';
+  }
+
+  if (startContactIndex && startContactSelect) {
+    startContactIndex.addEventListener('input', () => {
+      let idx = parseInt(startContactIndex.value, 10);
+      if (!isNaN(idx) && idx >= 1 && idx <= loadedContacts.length) {
+        startContactSelect.value = idx;
+      }
+      updateStartRangeUI();
+    });
+
+    startContactIndex.addEventListener('change', updateStartRangeUI);
+
+    startContactSelect.addEventListener('change', () => {
+      startContactIndex.value = startContactSelect.value;
+      updateStartRangeUI();
+    });
   }
 
   function renderVariableTags(columns) {
@@ -367,8 +435,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const startIndex = Math.max(1, parseInt(startContactIndex.value || 1, 10)) - 1;
+    const contactsToSend = loadedContacts.slice(startIndex);
+
+    if (contactsToSend.length === 0) {
+      alert('No hay contactos para enviar en el rango seleccionado.');
+      return;
+    }
+
     const payload = {
-      contacts: loadedContacts,
+      contacts: contactsToSend,
       template: templateTextarea.value,
       useGlobalAttachment: chkGlobalAttachment.checked,
       globalAttachmentPath,
