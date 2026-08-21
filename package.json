@@ -30,6 +30,7 @@
     },
     "win": {
       "icon": "build/icon.png",
+      "requestedExecutionLevel": "asInvoker",
       "target": [
         {
           "target": "nsis",
@@ -42,8 +43,22 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
         }
       ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": false,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "WHSU Bulk Sender Pro"
     }
   },
   "keywords": [
