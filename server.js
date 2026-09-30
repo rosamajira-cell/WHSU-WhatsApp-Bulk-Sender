@@ -102,6 +102,10 @@ campaignManager.on('interval-updated', (data) => {
   io.emit('interval-updated', data);
 });
 
+campaignManager.on('connection-lost', (data) => {
+  io.emit('campaign-connection-lost', data);
+});
+
 // -------------------------------------------------------------
 // ENDPOINTS REST API
 // -------------------------------------------------------------

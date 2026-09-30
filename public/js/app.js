@@ -117,6 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Intervalo actualizado en vivo desde el servidor:', data.intervalSeconds);
   });
 
+  socket.on('campaign-connection-lost', (data) => {
+    alert('⚠️ ' + (data.message || 'Se ha perdido la conexión con WhatsApp. La campaña ha sido pausada automáticamente.'));
+    resetControlButtons('paused');
+  });
+
   function updateStatusUI(data) {
     statusDot.className = 'status-dot ' + data.status;
     
