@@ -12,6 +12,7 @@ console.log('🧪 Iniciando Suite de Pruebas Unitarias para WHSU...\n');
 console.log('1️⃣ Probando Normalización de Teléfonos...');
 assert.strictEqual(normalizePhoneNumber('+52 (55) 0000-1111'), '525500001111');
 assert.strictEqual(normalizePhoneNumber(' 52155 0000 2222 '), '5215500002222');
+assert.strictEqual(normalizePhoneNumber('660141100'), '34660141100');
 assert.strictEqual(normalizePhoneNumber(''), '');
 console.log('   ✅ Normalización de teléfonos aprobada.');
 
